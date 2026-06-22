@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sistem Penilaian Mobil</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>🚗 Dashboard Sistem Penilaian Mobil</h1>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h3>Total Mobil</h3>
+        <h2 id="totalMobil">0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Nilai Rata-rata</h3>
+        <h2 id="rataNilai">0</h2>
+    </div>
+
+    <div class="card">
+        <h3>Mobil Terbaik</h3>
+        <h2 id="mobilTerbaik">-</h2>
+    </div>
+
+</div>
+
+<div class="table-container">
+    <h2>Data Penilaian Mobil</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Merek</th>
+                <th>Tipe</th>
+                <th>Tahun</th>
+                <th>Nilai</th>
+                <th>Kategori</th>
+            </tr>
+        </thead>
+
+        <tbody id="dataMobil">
+
+        </tbody>
+    </table>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
