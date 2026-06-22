@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Penilaian Mobil</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f5f7fb;
+}
+
+header{
+    background:#2563eb;
+    color:white;
+    padding:18px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.container{
+    width:90%;
+    margin:25px auto;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+
+.card h3{
+    color:#666;
+    margin-bottom:10px;
+}
+
+.card p{
+    font-size:30px;
+    color:#2563eb;
+    font-weight:bold;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+
+table th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+}
+
+table td{
+    padding:10px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.edit{
+    background:#f59e0b;
+    color:white;
+}
+
+.delete{
+    background:#dc2626;
+    color:white;
+}
+
+.add{
+    background:#16a34a;
+    color:white;
+    margin-bottom:15px;
+}
+
+footer{
+    margin-top:30px;
+    background:#2563eb;
+    color:white;
+    text-align:center;
+    padding:15px;
+}
+</style>
+
+</head>
+<body>
+
+<header>
+    🚗 Sistem Penilaian Mobil
+</header>
+
+<div class="container">
+
+<button class="add">+ Tambah Mobil</button>
+
+<div class="cards">
+
+<div class="card">
+<h3>Total Mobil</h3>
+<p>10</p>
+</div>
+
+<div class="card">
+<h3>Mobil Terbaik</h3>
+<p>95</p>
+</div>
+
+<div class="card">
+<h3>Rata-rata Nilai</h3>
+<p>88</p>
+</div>
+
+<div class="card">
+<h3>Total Penilaian</h3>
+<p>50</p>
+</div>
+
+</div>
+
+<table>
+
+<tr>
+<th>No</th>
+<th>Merk</th>
+<th>Tipe</th>
+<th>Harga</th>
+<th>Nilai</th>
+<th>Ranking</th>
+<th>Aksi</th>
+</tr>
+
+<tr>
+<td>1</td>
+<td>Toyota</td>
+<td>Avanza</td>
+<td>Rp250.000.000</td>
+<td>95</td>
+<td>1</td>
+<td>
+<button class="edit">Edit</button>
+<button class="delete">Hapus</button>
+</td>
+</tr>
+
+<tr>
+<td>2</td>
+<td>Honda</td>
+<td>Brio</td>
+<td>Rp220.000.000</td>
+<td>92</td>
+<td>2</td>
+<td>
+<button class="edit">Edit</button>
+<button class="delete">Hapus</button>
+</td>
+</tr>
+
+<tr>
+<td>3</td>
+<td>Suzuki</td>
+<td>Ertiga</td>
+<td>Rp240.000.000</td>
+<td>88</td>
+<td>3</td>
+<td>
+<button class="edit">Edit</button>
+<button class="delete">Hapus</button>
+</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td>Daihatsu</td>
+<td>Xenia</td>
+<td>Rp235.000.000</td>
+<td>85</td>
+<td>4</td>
+<td>
+<button class="edit">Edit</button>
+<button class="delete">Hapus</button>
+</td>
+</tr>
+
+</table>
+
+</div>
+
+<footer>
+© 2026 Sistem Penilaian Mobil
+</footer>
+
+</body>
+</html>
