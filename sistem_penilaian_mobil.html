@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Penilaian & Perangkingan Mobil — Metode SAW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1014;
+    --panel:#161a21;
+    --panel-2:#1c2129;
+    --border:#262c36;
+    --text:#eceef1;
+    --muted:#8a93a3;
+    --amber:#ffb238;
+    --amber-dim:#8a6323;
+    --teal:#43d9c8;
+    --red:#e8615c;
+    --grid-line: rgba(255,255,255,0.04);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,178,56,0.07), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(67,217,200,0.06), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    padding:0 0 80px 0;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:32px 20px;}
+
+  /* ---------- HEADER / DASHBOARD ---------- */
+  header{
+    border:1px solid var(--border);
+    background:linear-gradient(180deg, var(--panel-2), var(--panel));
+    border-radius:14px;
+    padding:28px 28px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image: repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 48px);
+    pointer-events:none;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--amber);
+    text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"●";color:var(--teal);font-size:9px;}
+  h1{
+    font-family:'Rajdhani',sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,42px);
+    margin:6px 0 6px;
+    letter-spacing:.01em;
+  }
+  header p.sub{color:var(--muted);max-width:640px;margin:0 0 22px;font-size:14.5px;line-height:1.6;}
+
+  .gauge-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;position:relative;}
+  .gauge{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 12px 12px;
+    text-align:center;
+  }
+  .gauge .ring{
+    width:64px;height:64px;border-radius:50%;margin:0 auto 8px;
+    display:flex;align-items:center;justify-content:center;
+    background:conic-gradient(var(--amber) calc(var(--pct)*1%), #2a303a 0);
+    position:relative;
+  }
+  .gauge .ring::after{
+    content:"";position:absolute;inset:6px;border-radius:50%;background:var(--panel);
+  }
+  .gauge .ring span{position:relative;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--amber);}
+  .gauge .label{font-size:12px;color:var(--text);font-weight:600;}
+  .gauge .code{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+
+  /* ---------- SECTIONS ---------- */
+  section{margin-top:36px;}
+  .sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .sec-num{font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:13px;}
+  .sec-head h2{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;margin:0;}
+  .sec-head .desc{color:var(--muted);font-size:13px;margin-left:auto;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+
+  .toolbar{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    padding:14px 16px;border-bottom:1px solid var(--border);
+    background:var(--panel-2);
+  }
+  .toolbar input[type="text"]{
+    flex:1;min-width:180px;
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:9px 12px;border-radius:8px;font-size:13.5px;font-family:inherit;
+  }
+  .toolbar select{
+    background:var(--bg);border:1px solid var(--border);color:var(--text);
+    padding:9px 10px;border-radius:8px;font-size:13.5px;font-family:inherit;
+  }
+  .badge-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);white-space:nowrap;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    position:sticky;top:0;
+    background:var(--panel-2);
+    text-align:left;padding:10px 12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);border-bottom:1px solid var(--border);
+    cursor:pointer;user-select:none;white-space:nowrap;
+  }
+  thead th:hover{color:var(--amber);}
+  thead th.sorted{color:var(--amber);}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--grid-line);vertical-align:middle;}
+  tbody tr:hover{background:rgba(255,178,56,0.05);}
+  .num{font-family:'JetBrains Mono',monospace;text-align:right;}
+  .tbl-scroll{max-height:520px;overflow:auto;}
+
+  .score-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+  .score-bar{width:56px;height:6px;border-radius:3px;background:#262c36;overflow:hidden;}
+  .score-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber));}
+  .score-val{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--amber);width:44px;text-align:right;}
+
+  .chk{width:15px;height:15px;accent-color:var(--amber);cursor:pointer;}
+
+  .rank-pill{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11.5px;
+    width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    background:#262c36;color:var(--text);
+  }
+  .rank-pill.gold{background:linear-gradient(145deg,#ffd77a,#c8912b);color:#231400;}
+  .rank-pill.silver{background:linear-gradient(145deg,#e6e9ee,#9aa4b2);color:#1a1d22;}
+  .rank-pill.bronze{background:linear-gradient(145deg,#e3a273,#a4592a);color:#241000;}
+
+  /* ---------- PODIUM ---------- */
+  .podium{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;padding:20px;
+  }
+  .podium-card{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
+    padding:16px;text-align:center;position:relative;
+  }
+  .podium-card.p1{order:2;border-color:var(--amber);box-shadow:0 0 0 1px rgba(255,178,56,0.25), 0 10px 30px -12px rgba(255,178,56,.35);transform:translateY(-8px);}
+  .podium-card.p2{order:1;}
+  .podium-card.p3{order:3;}
+  .podium-rank{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:34px;color:var(--muted);}
+  .podium-card.p1 .podium-rank{color:var(--amber);}
+  .podium-name{font-weight:600;font-size:15px;margin:4px 0 2px;}
+  .podium-type{color:var(--muted);font-size:11.5px;font-family:'JetBrains Mono',monospace;}
+  .podium-score{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--teal);}
+  .podium-score span{font-size:11px;color:var(--muted);display:block;font-weight:400;}
+
+  /* ---------- COMPARISON ---------- */
+  .compare-bar{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;
+    background:var(--panel-2);border:1px solid var(--border);border-radius:12px;
+    margin-bottom:18px;flex-wrap:wrap;
+  }
+  .compare-bar strong{font-family:'Rajdhani',sans-serif;font-size:15px;}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;flex:1;}
+  .chip{
+    background:var(--bg);border:1px solid var(--border);border-radius:20px;
+    padding:5px 10px 5px 12px;font-size:12.5px;display:flex;align-items:center;gap:6px;
+  }
+  .chip button{
+    background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;
+    padding:0;
+  }
+  .chip button:hover{color:var(--red);}
+  .clear-btn{
+    background:none;border:1px solid var(--border);color:var(--muted);
+    padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;
+  }
+  .clear-btn:hover{border-color:var(--red);color:var(--red);}
+  .empty-note{color:var(--muted);font-size:13px;padding:28px;text-align:center;}
+
+  .compare-grid{display:grid;gap:16px;}
+  .compare-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;
+  }
+  .compare-card .ch-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;gap:10px;}
+  .compare-card .ch-head h3{font-family:'Rajdhani',sans-serif;font-size:18px;margin:0;}
+  .compare-card .ch-head .final{font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:700;font-size:18px;}
+  .compare-meta{color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.7;font-family:'JetBrains Mono',monospace;}
+  .crit-row{display:grid;grid-template-columns:120px 1fr 40px;align-items:center;gap:10px;margin:7px 0;}
+  .crit-row .crit-label{font-size:12px;color:var(--muted);}
+  .crit-track{height:8px;border-radius:4px;background:#262c36;overflow:hidden;}
+  .crit-track > i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber));}
+  .crit-row .crit-num{font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;}
+
+  footer{
+    max-width:1180px;margin:40px auto 0;padding:0 20px;color:var(--muted);font-size:12px;
+    font-family:'JetBrains Mono',monospace;text-align:center;
+  }
+
+  @media (max-width:720px){
+    .gauge-row{grid-template-columns:repeat(2,1fr);}
+    .podium{grid-template-columns:1fr;}
+    .podium-card.p1{order:1;transform:none;}
+    .podium-card.p2{order:2;}
+    .podium-card.p3{order:3;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Sistem Pendukung Keputusan · Simple Additive Weighting</div>
+    <h1>Penilaian &amp; Perangkingan Mobil</h1>
+    <p class="sub">40 mobil dinilai atas 5 kriteria menggunakan metode SAW (Simple Additive Weighting). Skor akhir = jumlah (nilai kriteria × bobot kriteria). Data diambil langsung dari berkas Excel yang diunggah.</p>
+    <div class="gauge-row" id="gaugeRow"></div>
+  </header>
+
+  <!-- ================= PODIUM ================= -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Podium — Skor Tertinggi</h2>
+      <span class="desc">3 mobil dengan skor akhir terbaik</span>
+    </div>
+    <div class="panel">
+      <div class="podium" id="podium"></div>
+    </div>
+  </section>
+
+  <!-- ================= TABEL PERANGKINGAN ================= -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Tabel Perangkingan Lengkap</h2>
+      <span class="desc">Klik header kolom untuk mengurutkan</span>
+    </div>
+    <div class="panel">
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="Cari nama mobil atau tipe…">
+        <select id="typeFilter"><option value="">Semua tipe</option></select>
+        <span class="badge-count" id="countBadge"></span>
+      </div>
+      <div class="tbl-scroll">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th data-key="rank">Rank</th>
+              <th data-key="check">Bandingkan</th>
+              <th data-key="mobil">Mobil</th>
+              <th data-key="tipe">Tipe</th>
+              <th data-key="harga">Harga</th>
+              <th data-key="c1" class="num">C1 Harga</th>
+              <th data-key="c2" class="num">C2 Tenaga</th>
+              <th data-key="c3" class="num">C3 Mesin</th>
+              <th data-key="c4" class="num">C4 Efisiensi</th>
+              <th data-key="c5" class="num">C5 Teknologi</th>
+              <th data-key="score" class="num">Skor Akhir</th>
+            </tr>
+          </thead>
+          <tbody id="mainTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PERBANDINGAN ================= -->
+  <section id="compareSection">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Perbandingan Mobil</h2>
+      <span class="desc">Centang mobil di tabel di atas (maks 4) untuk membandingkan</span>
+    </div>
+    <div class="compare-bar">
+      <strong>Dipilih:</strong>
+      <div class="chips" id="chipsRow"><span class="empty-note" style="padding:0;">Belum ada mobil dipilih</span></div>
+      <button class="clear-btn" id="clearBtn">Bersihkan</button>
+    </div>
+    <div id="compareArea"><div class="panel"><div class="empty-note">Pilih minimal 2 mobil pada tabel untuk melihat perbandingan kriteria secara berdampingan.</div></div></div>
+  </section>
+
+  <!-- ================= KRITERIA ================= -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Tabel Kriteria &amp; Bobot</h2>
+      <span class="desc">Dasar perhitungan skor akhir</span>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>No</th><th>Kriteria</th><th class="num">Bobot</th></tr></thead>
+        <tbody id="critTbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<footer>DATA SUMBER · TABEL MENTAH / TABEL ALTERNATIF / TABEL C1 — SAW SCORING ENGINE</footer>
+
+<script>
+/* ================= DATA ================= */
+const CRITERIA = [
+  {key:'c1', code:'C1', label:'Harga', weight:0.30},
+  {key:'c2', code:'C2', label:'Tenaga', weight:0.25},
+  {key:'c3', code:'C3', label:'Kapasitas Mesin', weight:0.15},
+  {key:'c4', code:'C4', label:'Efisiensi', weight:0.15},
+  {key:'c5', code:'C5', label:'Teknologi', weight:0.15},
+];
+
+const CARS = [
+{no:1,mobil:'Toyota Innova',tipe:'MPV',mesin:'2.0–2.4L',tenaga:'139–149 PS',harga:'400–500 jt',c1:100,c2:80,c3:60,c4:70,c5:80},
+{no:2,mobil:'Toyota Hilux',tipe:'Pickup',mesin:'2.4L diesel',tenaga:'179 PS',harga:'587–639 jt',c1:90,c2:60,c3:100,c4:80,c5:70},
+{no:3,mobil:'Toyota Fortuner',tipe:'SUV',mesin:'2.4–2.8L',tenaga:'148–160 hp',harga:'583–788 jt',c1:50,c2:70,c3:80,c4:90,c5:60},
+{no:4,mobil:'Toyota Avanza',tipe:'MPV',mesin:'1.3–1.5L',tenaga:'98–106 PS',harga:'230–300 jt',c1:60,c2:70,c3:90,c4:100,c5:80},
+{no:5,mobil:'Toyota Veloz',tipe:'MPV',mesin:'1.5L',tenaga:'106 PS',harga:'290–330 jt',c1:100,c2:80,c3:70,c4:50,c5:90},
+{no:6,mobil:'Toyota Rush',tipe:'SUV',mesin:'1.5L',tenaga:'104 PS',harga:'280–310 jt',c1:90,c2:100,c3:80,c4:60,c5:60},
+{no:7,mobil:'Toyota Raize',tipe:'SUV',mesin:'1.0T–1.2L',tenaga:'88–98 PS',harga:'230–300 jt',c1:80,c2:90,c3:80,c4:70,c5:70},
+{no:8,mobil:'Toyota Yaris',tipe:'Hatchback',mesin:'1.5L',tenaga:'106 PS',harga:'300–330 jt',c1:70,c2:90,c3:100,c4:80,c5:60},
+{no:9,mobil:'Toyota Agya',tipe:'LCGC',mesin:'1.2L',tenaga:'88 PS',harga:'170–200 jt',c1:60,c2:70,c3:80,c4:90,c5:90},
+{no:10,mobil:'Toyota Alphard',tipe:'MPV',mesin:'2.5–3.5L',tenaga:'180–300 PS',harga:'1,3–1,7 M',c1:80,c2:90,c3:80,c4:70,c5:50},
+{no:11,mobil:'Toyota Land Cruiser',tipe:'SUV',mesin:'3.3L diesel',tenaga:'300 PS',harga:'2,4–2,6 M',c1:80,c2:90,c3:80,c4:70,c5:60},
+{no:12,mobil:'Toyota Prado',tipe:'SUV',mesin:'2.8L diesel',tenaga:'204 PS',harga:'2,1–2,3 M',c1:70,c2:90,c3:100,c4:80,c5:70},
+{no:13,mobil:'Mitsubishi Pajero Sport',tipe:'SUV',mesin:'2.4L diesel',tenaga:'181 PS',harga:'550–700 jt',c1:100,c2:80,c3:60,c4:60,c5:80},
+{no:14,mobil:'Honda CR-V',tipe:'SUV',mesin:'1.5T / Hybrid',tenaga:'190 PS',harga:'740–800 jt',c1:90,c2:60,c3:100,c4:50,c5:90},
+{no:15,mobil:'Honda HR-V',tipe:'SUV',mesin:'1.5L',tenaga:'121 PS',harga:'375–515 jt',c1:50,c2:70,c3:80,c4:90,c5:90},
+{no:16,mobil:'Hyundai Creta',tipe:'SUV',mesin:'1.5L',tenaga:'115 PS',harga:'300–400 jt',c1:60,c2:70,c3:90,c4:80,c5:50},
+{no:17,mobil:'Hyundai Palisade',tipe:'SUV',mesin:'2.2 diesel',tenaga:'200 PS',harga:'900 jt–1 M',c1:100,c2:80,c3:70,c4:70,c5:60},
+{no:18,mobil:'Wuling Almaz',tipe:'SUV',mesin:'1.5T',tenaga:'140 PS',harga:'370–470 jt',c1:90,c2:100,c3:80,c4:60,c5:70},
+{no:19,mobil:'Isuzu D-Max',tipe:'Pickup',mesin:'1.9–3.0 diesel',tenaga:'150 PS',harga:'360–550 jt',c1:80,c2:90,c3:80,c4:50,c5:80},
+{no:20,mobil:'Mitsubishi Triton',tipe:'Pickup',mesin:'2.4L diesel',tenaga:'181 PS',harga:'300–520 jt',c1:70,c2:90,c3:100,c4:50,c5:90},
+{no:21,mobil:'Ford Ranger',tipe:'Pickup',mesin:'2.0L turbo',tenaga:'213 PS',harga:'600–800 jt',c1:80,c2:70,c3:90,c4:60,c5:60},
+{no:22,mobil:'Nissan Navara',tipe:'Pickup',mesin:'2.5L diesel',tenaga:'190 PS',harga:'500–600 jt',c1:80,c2:90,c3:80,c4:70,c5:70},
+{no:23,mobil:'Toyota Camry',tipe:'Sedan',mesin:'2.5L / Hybrid',tenaga:'204 PS',harga:'800–900 jt',c1:80,c2:90,c3:80,c4:80,c5:80},
+{no:24,mobil:'Honda Civic',tipe:'Sedan',mesin:'1.5T',tenaga:'178 PS',harga:'600 jt',c1:80,c2:90,c3:80,c4:90,c5:90},
+{no:25,mobil:'Honda City',tipe:'Sedan',mesin:'1.5L',tenaga:'121 PS',harga:'400 jt',c1:80,c2:90,c3:80,c4:90,c5:90},
+{no:26,mobil:'Toyota Corolla Altis',tipe:'Sedan',mesin:'1.8 Hybrid',tenaga:'121 PS',harga:'600 jt',c1:70,c2:90,c3:100,c4:80,c5:80},
+{no:27,mobil:'Mazda 3',tipe:'Sedan',mesin:'2.0L',tenaga:'155 PS',harga:'500 jt',c1:100,c2:80,c3:60,c4:70,c5:70},
+{no:28,mobil:'Honda Brio',tipe:'Hatchback',mesin:'1.2L',tenaga:'90 PS',harga:'170–250 jt',c1:90,c2:60,c3:100,c4:70,c5:60},
+{no:29,mobil:'Suzuki Baleno',tipe:'Hatchback',mesin:'1.5L',tenaga:'105 PS',harga:'280 jt',c1:50,c2:70,c3:80,c4:70,c5:50},
+{no:30,mobil:'Mazda 2',tipe:'Hatchback',mesin:'1.5L',tenaga:'111 PS',harga:'350 jt',c1:60,c2:70,c3:90,c4:80,c5:60},
+{no:31,mobil:'Kia Rio',tipe:'Hatchback',mesin:'1.4L',tenaga:'100 PS',harga:'300 jt',c1:100,c2:80,c3:70,c4:60,c5:70},
+{no:32,mobil:'Mitsubishi Xpander',tipe:'MPV',mesin:'1.5L',tenaga:'105 PS',harga:'270–320 jt',c1:90,c2:100,c3:80,c4:90,c5:80},
+{no:33,mobil:'Suzuki Ertiga',tipe:'MPV',mesin:'1.5 Hybrid',tenaga:'103 PS',harga:'270–300 jt',c1:80,c2:90,c3:80,c4:80,c5:90},
+{no:34,mobil:'Daihatsu Xenia',tipe:'MPV',mesin:'1.3–1.5L',tenaga:'98–106 PS',harga:'220–280 jt',c1:70,c2:90,c3:100,c4:70,c5:60},
+{no:35,mobil:'Nissan Livina',tipe:'MPV',mesin:'1.5L',tenaga:'104 PS',harga:'300 jt',c1:80,c2:70,c3:90,c4:80,c5:70},
+{no:36,mobil:'Wuling Confero',tipe:'MPV',mesin:'1.5L',tenaga:'107 PS',harga:'200 jt',c1:80,c2:90,c3:80,c4:70,c5:80},
+{no:37,mobil:'Hyundai Ioniq 5',tipe:'EV',mesin:'Listrik',tenaga:'217 PS',harga:'800–900 jt',c1:80,c2:90,c3:80,c4:80,c5:90},
+{no:38,mobil:'Wuling Air EV',tipe:'EV',mesin:'Listrik',tenaga:'40–68 PS',harga:'200–300 jt',c1:90,c2:70,c3:50,c4:90,c5:60},
+{no:39,mobil:'Tesla Model 3',tipe:'EV',mesin:'Listrik',tenaga:'283–450 PS',harga:'1,5 M',c1:70,c2:80,c3:90,c4:70,c5:70},
+{no:40,mobil:'BYD Dolphin',tipe:'EV',mesin:'Listrik',tenaga:'95–177 PS',harga:'400–500 jt',c1:90,c2:80,c3:50,c4:90,c5:80},
+];
+
+/* ================= COMPUTE ================= */
+CARS.forEach(c=>{
+  c.score = CRITERIA.reduce((s,k)=> s + c[k.key]*k.weight, 0);
+  c.score = Math.round(c.score*100)/100;
+});
+const sortedByScore = [...CARS].sort((a,b)=>b.score-a.score);
+let rank = 1;
+sortedByScore.forEach((c,i)=>{
+  if(i>0 && c.score < sortedByScore[i-1].score) rank = i+1;
+  c.rank = rank;
+});
+
+let sortState = {key:'rank', dir:1};
+let selected = [];
+
+/* ================= RENDER: gauges ================= */
+const gaugeRow = document.getElementById('gaugeRow');
+CRITERIA.forEach(k=>{
+  const pct = Math.round(k.weight*100);
+  const div = document.createElement('div');
+  div.className='gauge';
+  div.innerHTML = `<div class="ring" style="--pct:${pct}"><span>${pct}%</span></div>
+    <div class="label">${k.label}</div><div class="code">${k.code}</div>`;
+  gaugeRow.appendChild(div);
+});
+
+/* ================= RENDER: criteria table ================= */
+const critTbody = document.getElementById('critTbody');
+CRITERIA.forEach((k,i)=>{
+  critTbody.innerHTML += `<tr><td>${i+1}</td><td>${k.label} (${k.code})</td><td class="num">${(k.weight*100).toFixed(0)}%</td></tr>`;
+});
+critTbody.innerHTML += `<tr><td></td><td><strong>Total</strong></td><td class="num"><strong>100%</strong></td></tr>`;
+
+/* ================= RENDER: podium ================= */
+function renderPodium(){
+  const top3 = sortedByScore.slice(0,3);
+  const order = ['p2','p1','p3'];
+  const podium = document.getElementById('podium');
+  podium.innerHTML = top3.map((c,i)=>`
+    <div class="podium-card ${['p1','p2','p3'][i]}">
+      <div class="podium-rank">#${i+1}</div>
+      <div class="podium-name">${c.mobil}</div>
+      <div class="podium-type">${c.tipe} · ${c.harga}</div>
+      <div class="podium-score">${c.score.toFixed(2)}<span>skor akhir</span></div>
+    </div>`).join('');
+}
+renderPodium();
+
+/* ================= RENDER: type filter ================= */
+const typeFilter = document.getElementById('typeFilter');
+[...new Set(CARS.map(c=>c.tipe))].sort().forEach(t=>{
+  const opt = document.createElement('option');
+  opt.value=t; opt.textContent=t;
+  typeFilter.appendChild(opt);
+});
+
+/* ================= RENDER: main table ================= */
+const mainTbody = document.getElementById('mainTbody');
+const countBadge = document.getElementById('countBadge');
+
+function rankPillClass(r){
+  if(r===1) return 'gold';
+  if(r===2) return 'silver';
+  if(r===3) return 'bronze';
+  return '';
+}
+
+function renderTable(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const t = typeFilter.value;
+  let rows = CARS.filter(c=>{
+    const matchQ = !q || c.mobil.toLowerCase().includes(q) || c.tipe.toLowerCase().includes(q);
+    const matchT = !t || c.tipe===t;
+    return matchQ && matchT;
+  });
+
+  rows.sort((a,b)=>{
+    const k = sortState.key;
+    let va = a[k], vb = b[k];
+    if(typeof va === 'string'){ va=va.toLowerCase(); vb=vb.toLowerCase(); return va<vb ? -1*sortState.dir : va>vb ? 1*sortState.dir : 0; }
+    return (va-vb)*sortState.dir;
+  });
+
+  countBadge.textContent = `${rows.length} / ${CARS.length} mobil`;
+
+  mainTbody.innerHTML = rows.map(c=>{
+    const checked = selected.includes(c.no) ? 'checked' : '';
+    const disabled = (!selected.includes(c.no) && selected.length>=4) ? 'disabled' : '';
+    return `<tr>
+      <td><span class="rank-pill ${rankPillClass(c.rank)}">${c.rank}</span></td>
+      <td style="text-align:center;"><input type="checkbox" class="chk" data-no="${c.no}" ${checked} ${disabled}></td>
+      <td><strong>${c.mobil}</strong></td>
+      <td>${c.tipe}</td>
+      <td class="num">${c.harga}</td>
+      <td class="num">${c.c1}</td>
+      <td class="num">${c.c2}</td>
+      <td class="num">${c.c3}</td>
+      <td class="num">${c.c4}</td>
+      <td class="num">${c.c5}</td>
+      <td class="num">
+        <div class="score-cell">
+          <div class="score-bar"><i style="width:${c.score}%"></i></div>
+          <span class="score-val">${c.score.toFixed(2)}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  mainTbody.querySelectorAll('.chk').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const no = Number(e.target.dataset.no);
+      if(e.target.checked){
+        if(selected.length>=4){ e.target.checked=false; return; }
+        selected.push(no);
+      } else {
+        selected = selected.filter(n=>n!==no);
+      }
+      renderTable();
+      renderCompare();
+    });
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', renderTable);
+typeFilter.addEventListener('change', renderTable);
+
+document.querySelectorAll('#mainTable thead th[data-key]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(key==='check') return;
+    if(sortState.key===key){ sortState.dir *= -1; } else { sortState.key=key; sortState.dir = (key==='mobil'||key==='tipe') ? 1 : -1; }
+    document.querySelectorAll('#mainTable thead th').forEach(h=>h.classList.remove('sorted'));
+    th.classList.add('sorted');
+    renderTable();
+  });
+});
+
+/* ================= COMPARISON ================= */
+const chipsRow = document.getElementById('chipsRow');
+const compareArea = document.getElementById('compareArea');
+
+function renderCompare(){
+  if(selected.length===0){
+    chipsRow.innerHTML = `<span class="empty-note" style="padding:0;">Belum ada mobil dipilih</span>`;
+    compareArea.innerHTML = `<div class="panel"><div class="empty-note">Pilih minimal 2 mobil pada tabel untuk melihat perbandingan kriteria secara berdampingan.</div></div>`;
+    return;
+  }
+  const cars = selected.map(no=>CARS.find(c=>c.no===no));
+
+  chipsRow.innerHTML = cars.map(c=>`<span class="chip">${c.mobil} <button data-no="${c.no}">×</button></span>`).join('');
+  chipsRow.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', e=>{
+      const no = Number(e.target.dataset.no);
+      selected = selected.filter(n=>n!==no);
+      renderTable(); renderCompare();
+    });
+  });
+
+  if(cars.length<2){
+    compareArea.innerHTML = `<div class="panel"><div class="empty-note">Pilih minimal 1 mobil lagi (maks 4) untuk membandingkan.</div></div>`;
+    return;
+  }
+
+  const maxScore = Math.max(...cars.map(c=>c.score));
+
+  compareArea.innerHTML = `<div class="compare-grid" style="grid-template-columns:repeat(${cars.length},1fr);">
+    ${cars.map(c=>`
+      <div class="compare-card">
+        <div class="ch-head"><h3>${c.mobil}</h3><span class="final">${c.score.toFixed(2)}</span></div>
+        <div class="compare-meta">${c.tipe} · ${c.mesin}<br>${c.tenaga} · ${c.harga}${c.score===maxScore ? '<br><span style="color:var(--amber)">★ Skor tertinggi di antara terpilih</span>' : ''}</div>
+        ${CRITERIA.map(k=>`
+          <div class="crit-row">
+            <span class="crit-label">${k.label}</span>
+            <div class="crit-track"><i style="width:${c[k.key]}%"></i></div>
+            <span class="crit-num">${c[k.key]}</span>
+          </div>`).join('')}
+      </div>`).join('')}
+  </div>`;
+}
+
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  selected = [];
+  renderTable(); renderCompare();
+});
+
+/* init */
+renderTable();
+renderCompare();
+</script>
+</body>
+</html>
